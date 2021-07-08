@@ -4,20 +4,7 @@
 
 (set! *warn-on-reflection* true)
 
-
-(defn coerce-unformattable-types [args]
-  (map (fn [x]
-         (cond (instance? clojure.lang.BigInt x) (biginteger x)
-               (instance? clojure.lang.Ratio x) (double x)
-               :else x))
-       args))
-
-(defn format-plus [fmt & args]
-  (apply format fmt (coerce-unformattable-types args)))
-;; ^ for debug
-
 (def max-iter 1000)
-
 (def screen-width 500)
 (def screen-height 500)
 
@@ -67,7 +54,7 @@
     iterations))
 
 
-(defn inc-int ^long [^long n] (inc n))
+(defn inc-long ^long [^long n] (inc n))
 
 (defn draw-state [state]
   (dotimes [row screen-width]
@@ -81,8 +68,7 @@
                 (swap!  x_temp x-func @y (c-re col))
                 (swap!  y      y-func @x (c-im row))
                 (reset! x      @x_temp            )
-                (swap!  iterations inc-int))
-            ;(println (format-plus "row:%d col:%d iter:%d" row col @iterations))
+                (swap!  iterations inc-long))
             (paint-background (< @iterations max-iter) row col)))))
 
 
