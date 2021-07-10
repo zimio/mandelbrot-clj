@@ -45,7 +45,7 @@
   (q/background 100)
   (q/no-loop))
 
-(defn update-state [state] nil)
+(defn update-sketch [state] nil)
 
 (defn recur-values [x y iterations row col]
   (if (and (< (sum-squares x y) 4) (< iterations max-iter))
@@ -56,20 +56,47 @@
 
 (defn inc-long ^long [^long n] (inc n))
 
-(defn draw-state [state]
-  (dotimes [row screen-width]
-    (dotimes [col screen-height]
-        (let [iterations   (atom 0)
-                x          (atom 0)
-                x_temp     (atom 0)
-                y          (atom 0)]
+(defn draw-naive [state]
+    (dotimes [row screen-width]
+        (dotimes [col screen-height]
+            (let [iterations   (atom 0)
+                    x          (atom 0)
+                    x_temp     (atom 0)
+                    y          (atom 0)]
 
-            (while (and (< (sum-squares @x @y) 4) (< @iterations max-iter))
-                (swap!  x_temp x-func @y (c-re col))
-                (swap!  y      y-func @x (c-im row))
-                (reset! x      @x_temp            )
-                (swap!  iterations inc-long))
-            (paint-background (< @iterations max-iter) row col)))))
+                (while (and (< (sum-squares @x @y) 4) (< @iterations max-iter))
+                    (swap!  x_temp x-func @y (c-re col))
+                    (swap!  y      y-func @x (c-im row))
+                    (reset! x      @x_temp            )
+                    (swap!  iterations inc-long))
+                (paint-background (< @iterations max-iter) row col)))))
+
+(defn y-func-op ^double [^double x
+                         ^double y
+                         ^long row]
+    (+ (* 2 x y )(c-im row)))
+
+(defn x-func-op ^double [^double x2
+                         ^double y2
+                         ^long col]
+    (+ (- x2 y2) (c-re col)))
+
+(defn draw-op[ [state]
+    (dotimes [row screen-width]
+            (dotimes [col screen-height]
+                (let [iterations    (atom 0)
+                        x           (atom 0)
+                        y           (atom 0)
+                        x2          (atom 0)
+                        y2          (atom 0)]
+
+                    (while (and (< (+ @x2 @y2) 4) (< @iterations max-iter))
+                        (reset! y (y-func-op @x @y row))
+                        (reset! x (x-func-op @x2 @y2 col))
+                        (reset! x2 (sq @x))
+                        (reset! y2 (sq @y))
+                        (swap!  iterations inc-long))
+                    (paint-background (< @iterations max-iter) row col)))))
 
 
 (q/defsketch mandelbrot-sketch
@@ -77,9 +104,9 @@
   :size [screen-width screen-height]
   ; setup function called only once, during sketch initialization.
   :setup setup
-  ; update-state is called on each iteration before draw-state.
-  :update update-state
-  :draw draw-state
+  ; update is called on each iteration before draw.
+  :update update-sketch
+  :draw draw
   :features [:keep-on-top]
   ; This sketch uses functional-mode middleware.
   ; Check quil wiki for more info about middlewares and particularly
