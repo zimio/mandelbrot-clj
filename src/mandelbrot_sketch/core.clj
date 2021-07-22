@@ -10,8 +10,8 @@
 
 (defn paint-background [iter_condition x y]
   (if iter_condition
-      (q/set-pixel x y (q/color 0))
-      (q/set-pixel x y (q/color 255))))
+      (q/color 0)
+      (q/color 255)))
 
 (defn sq ^double [^double n] (* n n))
 
@@ -81,22 +81,25 @@
                          ^long col]
     (+ (- x2 y2) (c-re col)))
 
-(defn draw-op[ [state]
-    (dotimes [row screen-width]
-            (dotimes [col screen-height]
-                (let [iterations    (atom 0)
-                        x           (atom 0)
-                        y           (atom 0)
-                        x2          (atom 0)
-                        y2          (atom 0)]
+(defn draw-op [state]
+  (time
+    (let [pixels (q/pixels)]
+        (dotimes [row screen-width]
+                    (dotimes [col screen-height]
+                        (let [iterations    (atom 0)
+                                x           (atom 0)
+                                y           (atom 0)
+                                x2          (atom 0)
+                                y2          (atom 0)]
 
-                    (while (and (< (+ @x2 @y2) 4) (< @iterations max-iter))
-                        (reset! y (y-func-op @x @y row))
-                        (reset! x (x-func-op @x2 @y2 col))
-                        (reset! x2 (sq @x))
-                        (reset! y2 (sq @y))
-                        (swap!  iterations inc-long))
-                    (paint-background (< @iterations max-iter) row col)))))
+                            (while (and (< (+ @x2 @y2) 4) (< @iterations max-iter))
+                                (reset! y (y-func-op @x @y row))
+                                (reset! x (x-func-op @x2 @y2 col))
+                                (reset! x2 (sq @x))
+                                (reset! y2 (sq @y))
+                                (swap!  iterations inc-long))
+                            (aset-int pixels (+ row (* col screen-width)) (paint-background (< @iterations max-iter) row col)))))
+        (q/update-pixels))))
 
 
 (q/defsketch mandelbrot-sketch
@@ -106,7 +109,7 @@
   :setup setup
   ; update is called on each iteration before draw.
   :update update-sketch
-  :draw draw
+  :draw draw-op
   :features [:keep-on-top]
   ; This sketch uses functional-mode middleware.
   ; Check quil wiki for more info about middlewares and particularly
