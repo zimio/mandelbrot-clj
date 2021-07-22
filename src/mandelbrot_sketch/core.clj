@@ -86,19 +86,18 @@
     (let [pixels (q/pixels)]
         (dotimes [row screen-width]
                     (dotimes [col screen-height]
-                        (let [iterations    (atom 0)
-                                x           (atom 0)
-                                y           (atom 0)
-                                x2          (atom 0)
-                                y2          (atom 0)]
-
-                            (while (and (< (+ @x2 @y2) 4) (< @iterations max-iter))
-                                (reset! y (y-func-op @x @y row))
-                                (reset! x (x-func-op @x2 @y2 col))
-                                (reset! x2 (sq @x))
-                                (reset! y2 (sq @y))
-                                (swap!  iterations inc-long))
-                            (aset-int pixels (+ row (* col screen-width)) (paint-background (< @iterations max-iter) row col)))))
+                      (let [iterations
+                        (loop [iter 0
+                               y    0.0
+                               x    0.0
+                               x2   0.0
+                               y2   0.0]
+                            (if (and (< (+ x2 y2) 4) (< iter max-iter))
+                              (let [new_y (y-func-op x y row)
+                                    new_x (x-func-op x2 y2 col)]
+                                (recur (inc iter) new_y new_x (sq new_x) (sq new_y)))
+                                iter))]
+                        (aset-int pixels (+ row (* col screen-width)) (paint-background (< iterations max-iter) row col)))))
         (q/update-pixels))))
 
 
