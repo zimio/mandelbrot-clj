@@ -2,6 +2,9 @@
 
 A Quil sketch designed to render the mandelbrot-sketch
 
+![mandelbrot](https://user-images.githubusercontent.com/1028738/126878880-96612adf-f915-43bc-8304-1aa96e625653.png)
+
+
 ## Usage
 
 LightTable - open `core.clj` and press `Ctrl+Shift+Enter` to evaluate the file.
