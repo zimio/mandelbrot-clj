@@ -18,16 +18,6 @@
 (defn sum-squares ^double [^double x
                            ^double y] (+ (sq x) (sq y)))
 
-(defn x-func ^double [^double x
-                      ^double y
-                      ^double c]
-  (+ (- (sq x) (sq y)) c))
-
-(defn y-func ^double [^double y
-                      ^double x
-                      ^double c]
-  (+ (* 2 x y) c))
-
 (defn c-func ^double [^long axis
                       ^long measure]
   (let [w screen-width
@@ -46,30 +36,6 @@
   (q/no-loop))
 
 (defn update-sketch [state] nil)
-
-(defn recur-values [x y iterations row col]
-  (if (and (< (sum-squares x y) 4) (< iterations max-iter))
-    (recur-values
-     (x-func x y (c-re col)) (y-func x y (c-im row)) (+ iterations 1) row col)
-    iterations))
-
-
-(defn inc-long ^long [^long n] (inc n))
-
-(defn draw-naive [state]
-    (dotimes [row screen-width]
-        (dotimes [col screen-height]
-            (let [iterations   (atom 0)
-                    x          (atom 0)
-                    x_temp     (atom 0)
-                    y          (atom 0)]
-
-                (while (and (< (sum-squares @x @y) 4) (< @iterations max-iter))
-                    (swap!  x_temp x-func @y (c-re col))
-                    (swap!  y      y-func @x (c-im row))
-                    (reset! x      @x_temp            )
-                    (swap!  iterations inc-long))
-                (paint-background (< @iterations max-iter) row col)))))
 
 (defn y-func-op ^double [^double x
                          ^double y
@@ -106,8 +72,6 @@
   :size [screen-width screen-height]
   ; setup function called only once, during sketch initialization.
   :setup setup
-  ; update is called on each iteration before draw.
-  :update update-sketch
   :draw draw-op
   :features [:keep-on-top]
   ; This sketch uses functional-mode middleware.
